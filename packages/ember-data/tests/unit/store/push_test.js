@@ -93,14 +93,20 @@ test("Calling push triggers `didLoad` even if the record hasn't been requested f
   });
 });
 
-test("Calling update with partial records updates just those attributes", function() {
+test("Calling update should be deprecated", function() {
+  expectDeprecation(function() {
+    store.update('person', { id: '1', name: 'Tomster' });
+  });
+});
+
+test("Calling push with partial records updates just those attributes", function() {
   var person = store.push('person', {
     id: 'wat',
     firstName: "Yehuda",
     lastName: "Katz"
   });
 
-  store.update('person', {
+  store.push('person', {
     id: 'wat',
     lastName: "Katz!"
   });
@@ -115,7 +121,7 @@ test("Calling update with partial records updates just those attributes", functi
   }));
 });
 
-test("Calling update on normalize allows partial updates with raw JSON", function () {
+test("Calling push on normalize allows partial updates with raw JSON", function () {
   env.container.register('serializer:person', DS.RESTSerializer);
 
   var person = store.push('person', {
@@ -124,13 +130,34 @@ test("Calling update on normalize allows partial updates with raw JSON", functio
     lastName: "Jackson"
   });
 
-  store.update('person', store.normalize('person', {
+  store.push('person', store.normalize('person', {
     id: '1',
     firstName: "Jacquie"
   }));
 
   equal(person.get('firstName'), "Jacquie", "you can push raw JSON into the store");
   equal(person.get('lastName'), "Jackson", "existing fields are untouched");
+});
+
+test("Calling push with partial records triggers observers for just those attributes", function() {
+  var person = store.push('person', {
+    id: 'wat',
+    firstName: "Yehuda",
+    lastName: "Katz"
+  });
+
+  person.addObserver('firstName', function() {
+    ok(false, 'firstName observer should not be triggered');
+  });
+
+  person.addObserver('lastName', function() {
+    ok(true, 'lastName observer should be triggered');
+  });
+
+  store.push('person', {
+    id: 'wat',
+    lastName: "Katz!"
+  });
 });
 
 test("Calling push with a normalized hash containing related records returns a record", function() {

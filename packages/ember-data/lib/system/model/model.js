@@ -824,7 +824,7 @@ var Model = Ember.Object.extend(Ember.Evented, {
 
     if (!data) { return; }
 
-    this.notifyPropertyChange('data');
+    Ember.keys(data).map(this.notifyPropertyChange, this);
   },
 
   /**
@@ -853,19 +853,14 @@ var Model = Ember.Object.extend(Ember.Evented, {
     @method setupData
     @private
     @param {Object} data
-    @param {Boolean} partial the data should be merged into
-      the existing data, not replace it.
   */
-  setupData: function(data, partial) {
-    if (partial) {
-      Ember.merge(this._data, data);
-    } else {
-      this._data = data;
-    }
+  setupData: function(data) {
+    Ember.assert("Expected an object as `data` in `setupData`", Ember.typeOf(data) === 'object');
 
-    if (data) { this.pushedData(); }
+    Ember.merge(this._data, data);
+    this.pushedData();
 
-    this.notifyPropertyChange('data');
+    Ember.keys(data).map(this.notifyPropertyChange, this);
   },
 
   materializeId: function(id) {
@@ -922,7 +917,7 @@ var Model = Ember.Object.extend(Ember.Evented, {
 
     this.send('rolledBack');
 
-    this.notifyPropertyChange('data');
+    Ember.keys(this._data).map(this.notifyPropertyChange, this);
   },
 
   toStringExtension: function() {
